@@ -1,21 +1,18 @@
 model Review {
-
   id String @id @default(uuid())
 
-  rating Int
-
+  rating  Int
   comment String
 
-  tenantId String
-
+  tenantId   String
   propertyId String
 
-  tenant User @relation(fields:[tenantId],references:[id])
-
-  property Property @relation(fields:[propertyId],references:[id])
+  tenant   User     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
+  @@index([propertyId])
+  @@index([tenantId])
   @@map("reviews")
-
 }

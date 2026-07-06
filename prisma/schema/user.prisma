@@ -1,5 +1,4 @@
 model User {
-
   id String @id @default(uuid())
 
   name String
@@ -16,6 +15,10 @@ model User {
 
   status UserStatus @default(ACTIVE)
 
+  isDeleted Boolean @default(false)
+
+  deletedAt DateTime?
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
@@ -26,5 +29,8 @@ model User {
 
   reviews Review[]
 
+  @@index([email])
+  @@index([role])
+  @@index([status])
   @@map("users")
 }
