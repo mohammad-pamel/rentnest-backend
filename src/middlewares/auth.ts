@@ -45,10 +45,7 @@ export const auth = (...requiredRoles: Role[]) => {
 
         const user = await prisma.user.findUnique({
             where: {
-                id,
-                email,
-                name,
-                role
+                id
             }
         })
 
@@ -56,6 +53,10 @@ export const auth = (...requiredRoles: Role[]) => {
             throw new Error("User not found. Please log in again.");
         }
        
+        if (user.isDeleted === true) {
+            throw new Error("Your accoount has been deleted. Please contact support.");
+        }
+
         if (user.status === "BANNED") {
             throw new Error("Your accoount has been banned. Please contact support.");
         }

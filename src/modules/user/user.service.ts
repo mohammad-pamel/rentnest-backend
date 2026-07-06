@@ -7,13 +7,17 @@ const registerUserIntoDB = async (payload: IRegisterUser) => {
 
     const { name, email, password, phone, role } = payload;
 
-     const userExist = await prisma.user.findUnique({
+    if (!name || !email || !password || !role) {
+        throw new Error("All required fields are mandatory.");
+    }
+
+    const userExist = await prisma.user.findUnique({
         where: {
             email
         }
     })
 
-    if(userExist){
+    if (userExist) {
         throw new Error("User already exist");
     }
 
@@ -26,28 +30,14 @@ const registerUserIntoDB = async (payload: IRegisterUser) => {
             password: hashPassword,
             phone,
             role
-            
-        }
-    })
-    
-    // const profile = await prisma.profile.create({
-    //     data: {
-    //         userId: createdUser.id,
-    //         profilePhoto
-    //     }
-    // })
-
-    const user = await prisma.user.findUnique({
-        where: {
-            id: createdUser.id,
-            email: createdUser.email || email
         },
         omit: {
             password: true
         }
     })
 
-    return user;
+
+    return createdUser;
 }
 
 const getMyProfileIntoDB = async (userId: string) => {
@@ -57,6 +47,9 @@ const getMyProfileIntoDB = async (userId: string) => {
         },
         omit: {
             password: true
+        },
+        include: {
+            properties: true
         }
     })
 
