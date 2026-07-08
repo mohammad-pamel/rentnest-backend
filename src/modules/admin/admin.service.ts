@@ -47,6 +47,27 @@ const updateUserStatusIntoDB = async (
     return updatedUser;
 };
 
+const getAllPropertiesFromDB = async () => {
+
+    return await prisma.property.findMany({
+        where: {
+            isDeleted: false
+        },
+        include: {
+            landlord: {
+                omit: {
+                    password: true
+                }
+            },
+            category: true
+        },
+        orderBy: {
+            createdAt: "desc"
+        }
+    });
+
+};
+
 
 
 export const adminService = {
