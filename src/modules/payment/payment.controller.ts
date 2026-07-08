@@ -1,10 +1,10 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import { paymentService } from "./payment.service";
 import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status";
 
-const createPayment = catchAsync(async (req: Request, res: Response) => {
+const createPayment = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const url = await paymentService.createCheckoutSessionIntoDB(
     req.body.rentalRequestId,
     req.user?.email as string
@@ -18,7 +18,7 @@ const createPayment = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const confirmPayment = catchAsync(async (req: Request, res: Response) => {
+const confirmPayment = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const result = await paymentService.paymentSuccessIntoDB(
     req.query.session_id as string
   );
@@ -31,7 +31,7 @@ const confirmPayment = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getMyPayments = catchAsync(async (req: Request, res: Response) => {
+const getMyPayments = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const result = await paymentService.getMyPaymentsIntoDB(
     req.user?.id as string
   );

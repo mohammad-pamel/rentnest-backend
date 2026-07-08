@@ -5,6 +5,9 @@ import cookieParser from "cookie-parser";
 import { userRoutes } from "./modules/user/user.route";
 import { authRoutes } from "./modules/auth/auth.route";
 import { paymentRoutes } from "./modules/payment/payment.route";
+import { rentalRoutes } from "./modules/rental/rental.route";
+import { propertyRoutes } from "./modules/property/property.route";
+import { reviewRoutes } from "./modules/review/review.route";
 
 
 const app : Application = express();
@@ -25,5 +28,9 @@ app.get('/', async(req: Request, res: Response) => {
 app.use('/api/auth', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/properties", propertyRoutes);
+app.use("/rentals", rentalRoutes);
+app.use("/reviews", reviewRoutes);
+
 
 export default app;
