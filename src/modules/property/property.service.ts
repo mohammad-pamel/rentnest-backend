@@ -10,6 +10,7 @@ const createPropertyIntoDB = async (payload: IProperty) => {
 };
 
 const getAllPropertiesFromDB = async (query: IPropertyFilter) => {
+
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;
@@ -17,6 +18,23 @@ const getAllPropertiesFromDB = async (query: IPropertyFilter) => {
   const filters: any = {
     isDeleted: false,
   };
+
+  if (query.searchTerm) {
+    filters.OR = [
+      {
+        title: {
+          contains: query.searchTerm,
+          mode: "insensitive",
+        },
+      },
+      {
+        location: {
+          contains: query.searchTerm,
+          mode: "insensitive",
+        },
+      },
+    ];
+  }
 
   if (query.location) {
     filters.location = {
@@ -29,6 +47,14 @@ const getAllPropertiesFromDB = async (query: IPropertyFilter) => {
     filters.categoryId = query.categoryId;
   }
 
+  if (query.bedrooms) {
+    filters.bedrooms = Number(query.bedrooms);
+  }
+
+  if (query.isAvailable !== undefined) {
+    filters.isAvailable = query.isAvailable === "true";
+  }
+
   if (query.minPrice || query.maxPrice) {
     filters.price = {
       gte: query.minPrice ? Number(query.minPrice) : undefined,
@@ -36,12 +62,27 @@ const getAllPropertiesFromDB = async (query: IPropertyFilter) => {
     };
   }
 
+  const sortBy = (query.sortBy as string) || "createdAt";
+  const sortOrder =
+    query.sortOrder === "asc" ? "asc" : "desc";
+
   const properties = await prisma.property.findMany({
     where: filters,
+
+    include: {
+      category: true,
+      landlord: {
+        omit: {
+          password: true,
+        },
+      },
+    },
+
     skip,
     take: limit,
+
     orderBy: {
-      createdAt: "desc",
+      [sortBy]: sortOrder,
     },
   });
 
@@ -55,6 +96,7 @@ const getAllPropertiesFromDB = async (query: IPropertyFilter) => {
       page,
       limit,
       total,
+      totalPage: Math.ceil(total / limit),
     },
   };
 };

@@ -14,11 +14,24 @@ export interface IProperty {
 }
 
 export interface IPropertyFilter {
+  page?: string;
+  limit?: string;
+
   searchTerm?: string;
+
   location?: string;
-  minPrice?: number;
-  maxPrice?: number;
+
   categoryId?: string;
-  page?: number;
-  limit?: number;
+
+  minPrice?: string;
+
+  maxPrice?: string;
+
+  bedrooms?: string;
+
+  isAvailable?: string;
+
+  sortBy?: string;
+
+  sortOrder?: "asc" | "desc";
 }
