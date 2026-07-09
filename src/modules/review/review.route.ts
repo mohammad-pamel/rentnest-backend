@@ -5,15 +5,8 @@ import { Role } from "../../../generated/prisma/enums";
 
 const router = Router();
 
-router.post(
-    "/",
-    auth(Role.TENANT),
-    reviewController.createReview
-);
+router.post("/", auth(Role.TENANT), reviewController.createReview);
 
-router.get(
-    "/:propertyId",
-    reviewController.getPropertyReviews
-);
+router.get("/:propertyId", reviewController.getPropertyReviews);
 
 export const reviewRoutes = router;
