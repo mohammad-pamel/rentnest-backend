@@ -10,6 +10,7 @@ import { propertyRoutes } from "./modules/property/property.route";
 import { reviewRoutes } from "./modules/review/review.route";
 import { adminRoutes } from "./modules/admin/admin.route";
 import { categoryRoutes } from "./modules/category/category.route";
+import { globalErrorHandler } from "./middlewares/gloalErrorHandler";
 
 
 const app : Application = express();
@@ -35,6 +36,14 @@ app.use("/rentals", rentalRoutes);
 app.use("/reviews", reviewRoutes);
 app.use("/admin", adminRoutes);
 app.use("/categories", categoryRoutes);
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    statusCode: 404,
+    message: "API Not Found",
+  });
+});
+app.use(globalErrorHandler);
 
 
 export default app;
