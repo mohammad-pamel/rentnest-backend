@@ -3,12 +3,12 @@ import { prisma } from "../../lib/prisma";
 import config from "../../config";
 
 const stripe = new Stripe(config.stripe_secret_key as string);
+console.log(JSON.stringify(config.stripe_secret_key));
 
-const createCheckoutSessionIntoDB = async (
-  rentalRequestId: string,
-  userEmail: string
-) => {
-  const rental = await prisma.rentalRequest.findUnique({
+
+const createCheckoutSessionIntoDB = async (rentalRequestId: string, userEmail: string) => {
+ try {
+   const rental = await prisma.rentalRequest.findUnique({
     where: {
       id: rentalRequestId,
     },
@@ -29,6 +29,8 @@ const createCheckoutSessionIntoDB = async (
   if (rental.payment) {
     throw new Error("Payment already exists.");
   }
+
+  console.log(config.app_url);
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
@@ -54,6 +56,7 @@ const createCheckoutSessionIntoDB = async (
       },
     ],
 
+
     success_url: `${config.app_url}/api/payments/success?session_id={CHECKOUT_SESSION_ID}`,
 
     cancel_url: `${config.app_url}/api/payments/cancel`,
@@ -62,6 +65,8 @@ const createCheckoutSessionIntoDB = async (
       rentalRequestId,
     },
   });
+
+  console.log("Session created:", session.id);
 
   await prisma.payment.create({
     data: {
@@ -80,6 +85,10 @@ const createCheckoutSessionIntoDB = async (
   return {
     checkoutUrl: session.url,
   };
+ } catch (error) {
+  console.error("Stripe Error:", error);
+  throw error;
+ }
 };
 
 const paymentSuccessIntoDB = async (sessionId: string) => {

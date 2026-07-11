@@ -21,7 +21,7 @@ const createReviewIntoDB = async (
         where: {
             tenantId,
             propertyId: payload.propertyId,
-            status: "COMPLETED"
+            status: "ACTIVE"
         }
     });
 

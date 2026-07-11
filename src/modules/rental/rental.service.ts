@@ -88,6 +88,7 @@ const getLandlordRequestsFromDB = async (
       property: true,
       tenant: true,
     },
+
   });
 
   const total = await prisma.rentalRequest.count({

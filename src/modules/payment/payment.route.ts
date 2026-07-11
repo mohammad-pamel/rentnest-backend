@@ -5,21 +5,10 @@ import { Role } from "../../../generated/prisma/enums";
 
 const router = Router();
 
-router.post(
-  "/create",
-  auth(Role.TENANT),
-  paymentController.createPayment
-);
+router.post("/create", auth(Role.TENANT), paymentController.createPayment);
 
-router.get(
-  "/success",
-  paymentController.confirmPayment
-);
+router.get("/success", paymentController.confirmPayment);
 
-router.get(
-  "/my",
-  auth(Role.TENANT),
-  paymentController.getMyPayments
-);
+router.get("/my", auth(Role.TENANT), paymentController.getMyPayments);
 
 export const paymentRoutes = router;

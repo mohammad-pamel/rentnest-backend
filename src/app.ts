@@ -20,6 +20,7 @@ app.use(cors({
     credentials: true
 }))
 
+
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(cookieParser());
@@ -31,11 +32,11 @@ app.get('/', async(req: Request, res: Response) => {
 app.use('/api/auth', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use("/api/payments", paymentRoutes);
-app.use("/properties", propertyRoutes);
-app.use("/rentals", rentalRoutes);
-app.use("/reviews", reviewRoutes);
-app.use("/admin", adminRoutes);
-app.use("/categories", categoryRoutes);
+app.use("/api/properties", propertyRoutes);
+app.use("/api/rentals", rentalRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/categories", categoryRoutes);
 app.use((req: Request, res: Response) => {
   res.status(404).json({
     success: false,
