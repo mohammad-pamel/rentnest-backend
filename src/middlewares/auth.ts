@@ -37,36 +37,27 @@ export const auth = (...requiredRoles: Role[]) => {
             throw new Error(verifiedToken.error);
         }
 
-        const { email, name, id, role } = verifiedToken.data as JwtPayload;
+        const { id } = verifiedToken.data as JwtPayload;
+        if (typeof id !== "string") throw new Error("Invalid authentication token.");
 
-        if (requiredRoles.length && !requiredRoles.includes(role)) {
-            throw new Error("Forbidden. You don't have permission to access this resource.")
+        const user = await prisma.user.findUnique({ where: { id } });
+        if (!user) throw new Error("User not found. Please log in again.");
+        if (user.isDeleted) throw new Error("Your account has been deleted. Please contact support.");
+        if (user.status === "BANNED") throw new Error("Your account has been banned. Please contact support.");
+
+        // Always authorize with the current database role, not a potentially stale JWT role.
+        if (requiredRoles.length && !requiredRoles.includes(user.role)) {
+            throw new Error("Forbidden. You don't have permission to access this resource.");
         }
 
-        const user = await prisma.user.findUnique({
-            where: {
-                id
-            }
-        })
-
-        if (!user) {
-            throw new Error("User not found. Please log in again.");
-        }
-       
-        if (user.isDeleted === true) {
-            throw new Error("Your accoount has been deleted. Please contact support.");
-        }
-
-        if (user.status === "BANNED") {
-            throw new Error("Your accoount has been banned. Please contact support.");
-        }
-
-         req.user = {
-        email,
-        name,
-        id,
-        role
-    }
+        req.user = {
+            email: user.email,
+            name: user.name,
+            id: user.id,
+            role: user.role,
+            phone: user.phone || undefined,
+            status: user.status,
+        };
 
     next();
 

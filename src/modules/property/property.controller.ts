@@ -30,6 +30,16 @@ const getAllProperties = catchAsync(async (req: Request, res: Response, next: Ne
   });
 });
 
+const getMyProperties = catchAsync(async (req: Request, res: Response) => {
+  const result = await propertyService.getMyPropertiesFromDB(req.user?.id as string);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Your properties fetched successfully",
+    data: result,
+  });
+});
+
 const getSingleProperty = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const result = await propertyService.getSinglePropertyFromDB(req.params.id as string);
 
@@ -44,7 +54,9 @@ const getSingleProperty = catchAsync(async (req: Request, res: Response, next: N
 const updateProperty = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const result = await propertyService.updatePropertyIntoDB(
     req.params.id as string,
-    req.body
+    req.body,
+    req.user?.id as string,
+    req.user?.role === "ADMIN"
   );
 
   sendResponse(res, {
@@ -56,7 +68,7 @@ const updateProperty = catchAsync(async (req: Request, res: Response, next: Next
 });
 
 const deleteProperty = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const result = await propertyService.deletePropertyFromDB(req.params.id as string);
+  const result = await propertyService.deletePropertyFromDB(req.params.id as string, req.user?.id as string, req.user?.role === "ADMIN");
 
   sendResponse(res, {
     success: true,
@@ -69,6 +81,7 @@ const deleteProperty = catchAsync(async (req: Request, res: Response, next: Next
 export const propertyController = {
   createProperty,
   getAllProperties,
+  getMyProperties,
   getSingleProperty,
   updateProperty,
   deleteProperty,

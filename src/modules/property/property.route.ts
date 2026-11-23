@@ -9,6 +9,8 @@ router.post("/", auth(Role.LANDLORD, Role.ADMIN), propertyController.createPrope
 
 router.get("/", propertyController.getAllProperties);
 
+router.get("/my", auth(Role.LANDLORD, Role.ADMIN), propertyController.getMyProperties);
+
 router.get("/:id", propertyController.getSingleProperty);
 
 router.patch("/:id", auth(Role.LANDLORD, Role.ADMIN), propertyController.updateProperty);

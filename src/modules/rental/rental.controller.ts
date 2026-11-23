@@ -51,7 +51,9 @@ const getLandlordRequests = catchAsync(async (req: Request, res: Response, next:
 const updateRentalStatus = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const result = await rentalService.updateRentalStatusIntoDB(
     req.params.id as string,
-    req.body.status
+    req.body.status,
+    req.user?.id as string,
+    req.user?.role === "ADMIN"
   );
 
   sendResponse(res, {

@@ -5,11 +5,17 @@ import config from "../../config";
 
 const registerUserIntoDB = async (payload: IRegisterUser) => {
 
-    const { name, email, password, phone, role } = payload;
+    const { name, password, phone } = payload;
+    const email = payload.email?.trim().toLowerCase();
+    const role = payload.role;
 
-    if (!name || !email || !password || !role) {
+    if (!name?.trim() || !email || !password || !role) {
         throw new Error("All required fields are mandatory.");
     }
+    if (role !== "TENANT" && role !== "LANDLORD") {
+        throw new Error("Only TENANT or LANDLORD accounts can be registered publicly.");
+    }
+    if (password.length < 8) throw new Error("Password must be at least 8 characters long.");
 
     const userExist = await prisma.user.findUnique({
         where: {
@@ -25,7 +31,7 @@ const registerUserIntoDB = async (payload: IRegisterUser) => {
 
     const createdUser = await prisma.user.create({
         data: {
-            name,
+            name: name.trim(),
             email,
             password: hashPassword,
             phone,

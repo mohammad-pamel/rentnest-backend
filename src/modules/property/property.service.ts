@@ -101,6 +101,23 @@ const getAllPropertiesFromDB = async (query: IPropertyFilter) => {
   };
 };
 
+const getMyPropertiesFromDB = async (landlordId: string) => {
+  return prisma.property.findMany({
+    where: { landlordId, isDeleted: false },
+    include: { category: true },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
+const assertPropertyOwner = async (id: string, actorId: string, isAdmin: boolean) => {
+  const property = await prisma.property.findFirst({ where: { id, isDeleted: false } });
+  if (!property) throw new Error("Property not found.");
+  if (!isAdmin && property.landlordId !== actorId) {
+    throw new Error("You are not authorized to modify this property.");
+  }
+  return property;
+};
+
 const getSinglePropertyFromDB = async (id: string) => {
   return await prisma.property.findFirst({
     where: {
@@ -109,20 +126,23 @@ const getSinglePropertyFromDB = async (id: string) => {
     },
     include: {
       category: true,
-      landlord: true,
+      landlord: { omit: { password: true } },
       reviews: true,
     },
   });
 };
 
-const updatePropertyIntoDB = async (id: string, payload: Partial<IProperty>) => {
+const updatePropertyIntoDB = async (id: string, payload: Partial<IProperty>, actorId: string, isAdmin: boolean) => {
+  await assertPropertyOwner(id, actorId, isAdmin);
+  const { landlordId: _landlordId, ...safePayload } = payload;
   return await prisma.property.update({
     where: { id },
-    data: payload,
+    data: safePayload,
   });
 };
 
-const deletePropertyFromDB = async (id: string) => {
+const deletePropertyFromDB = async (id: string, actorId: string, isAdmin: boolean) => {
+  await assertPropertyOwner(id, actorId, isAdmin);
   return await prisma.property.update({
     where: { id },
     data: {
@@ -135,6 +155,7 @@ const deletePropertyFromDB = async (id: string) => {
 export const propertyService = {
   createPropertyIntoDB,
   getAllPropertiesFromDB,
+  getMyPropertiesFromDB,
   getSinglePropertyFromDB,
   updatePropertyIntoDB,
   deletePropertyFromDB,

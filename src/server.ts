@@ -10,6 +10,11 @@ async function main() {
     await prisma.$connect();
     console.log("Database connected successfully");
 
+    //  await redisClient.connect();
+    // console.log("Redis connected successfully!");
+
+    // await verifyEmailTransporter();
+
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });

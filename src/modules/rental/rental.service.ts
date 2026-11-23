@@ -13,6 +13,16 @@ const createRentalRequestIntoDB = async (payload: IRentalRequest) => {
     throw new Error("You already requested this property");
   }
 
+  const property = await prisma.property.findFirst({
+    where: { id: payload.propertyId, isDeleted: false, isAvailable: true },
+    select: { id: true },
+  });
+  if (!property) throw new Error("Property not found or currently unavailable.");
+
+  if (!Number.isInteger(Number(payload.months)) || Number(payload.months) < 1 || Number(payload.months) > 36) {
+    throw new Error("Rental duration must be between 1 and 36 months.");
+  }
+
   const rental = await prisma.rentalRequest.create({
     data: {
       propertyId: payload.propertyId,
@@ -86,16 +96,15 @@ const getLandlordRequestsFromDB = async (
     take: limit,
     include: {
       property: true,
-      tenant: true,
+      tenant: { omit: { password: true } },
     },
 
   });
 
   const total = await prisma.rentalRequest.count({
     where: {
-      property: {
-        landlordId,
-      },
+      property: { landlordId },
+      ...(query.status && { status: query.status }),
     },
   });
 
@@ -111,18 +120,31 @@ const getLandlordRequestsFromDB = async (
 
 const updateRentalStatusIntoDB = async (
   id: string,
-  status: "APPROVED" | "REJECTED" | "ACTIVE" | "COMPLETED"
+  status: "APPROVED" | "REJECTED" | "ACTIVE" | "COMPLETED",
+  actorId: string,
+  isAdmin: boolean,
 ) => {
-  const updated = await prisma.rentalRequest.update({
-    where: {
-      id,
-    },
-    data: {
-      status,
-    },
+  if (!["APPROVED", "REJECTED", "ACTIVE", "COMPLETED"].includes(status)) {
+    throw new Error("Invalid rental status.");
+  }
+  const rental = await prisma.rentalRequest.findUnique({
+    where: { id },
+    include: { property: { select: { landlordId: true } }, payment: true },
   });
-
-  return updated;
+  if (!rental) throw new Error("Rental request not found.");
+  if (!isAdmin && rental.property.landlordId !== actorId) {
+    throw new Error("You are not authorized to update this rental request.");
+  }
+  if ((status === "APPROVED" || status === "REJECTED") && rental.status !== "PENDING") {
+    throw new Error("Only pending rental requests can be approved or rejected.");
+  }
+  if (status === "ACTIVE" && rental.payment?.status !== "COMPLETED") {
+    throw new Error("A rental can only become active after successful payment.");
+  }
+  if (status === "COMPLETED" && rental.status !== "ACTIVE") {
+    throw new Error("Only active rentals can be marked completed.");
+  }
+  return prisma.rentalRequest.update({ where: { id }, data: { status } });
 };
 
 export const rentalService = {
